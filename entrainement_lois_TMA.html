@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entraînement — Lois des nœuds et des mailles</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    max-width: 950px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #f4f6f8;
+    color: #222;
+    line-height: 1.6;
+  }
+  h1 {
+    color: #1a4d7a;
+    border-bottom: 3px solid #1a4d7a;
+    padding-bottom: 10px;
+  }
+  .intro-card {
+    background: linear-gradient(135deg, #e3f2fd 0%, #fff 100%);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 25px;
+    border-left: 5px solid #1976d2;
+  }
+  .intro-card p { margin: 6px 0; }
+  .formules-utiles {
+    background: #fff8e1;
+    border-left: 5px solid #f9a825;
+    padding: 15px 20px;
+    border-radius: 6px;
+    margin-bottom: 25px;
+  }
+  .formules-utiles h2 {
+    margin-top: 0;
+    color: #b26a00;
+    font-size: 1.1em;
+  }
+  .formules-utiles ul { margin: 8px 0; padding-left: 20px; }
+  .formules-utiles li { margin: 6px 0; }
+  .formules-utiles code {
+    background: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #b26a00;
+    font-size: 1.05em;
+  }
+  .cas-titre {
+    color: white;
+    background: #1a4d7a;
+    padding: 12px 20px;
+    border-radius: 5px;
+    margin-top: 35px;
+    margin-bottom: 5px;
+    font-size: 1.15em;
+    font-weight: bold;
+  }
+  .cas-titre .points {
+    float: right;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 12px;
+    border-radius: 12px;
+    font-size: 0.9em;
+  }
+  .enonce {
+    background: #e8f5e9;
+    border-left: 5px solid #2e7d32;
+    padding: 15px 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+  }
+  .question {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .question h3 {
+    margin-top: 0;
+    color: #1a4d7a;
+  }
+  .question h3 .pts {
+    font-size: 0.85em;
+    color: #e65100;
+    font-weight: 600;
+    margin-left: 8px;
+  }
+  .brouillon {
+    background: #f5f5f5;
+    border: 1px dashed #999;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 10px 0;
+    font-style: italic;
+    color: #555;
+    font-size: 0.95em;
+  }
+  .brouillon::before { content: "✏️ "; }
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+  }
+  input[type="number"] {
+    padding: 8px 12px;
+    font-size: 1em;
+    border: 2px solid #bbb;
+    border-radius: 5px;
+    width: 130px;
+  }
+  input:focus { outline: none; border-color: #1976d2; }
+  .unite { font-weight: bold; color: #555; }
+  .precision {
+    font-size: 0.85em;
+    color: #666;
+    font-style: italic;
+  }
+  button {
+    background: #1976d2;
+    color: white;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+  button:hover { background: #0d47a1; }
+  button:disabled { background: #999; cursor: not-allowed; }
+  .feedback {
+    margin-top: 12px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    display: none;
+  }
+  .feedback.correct {
+    background: #c8e6c9;
+    border-left: 4px solid #2e7d32;
+    color: #1b5e20;
+  }
+  .feedback.indice {
+    background: #fff3e0;
+    border-left: 4px solid #ef6c00;
+    color: #5d3a00;
+  }
+  .feedback.solution {
+    background: #ffe0b2;
+    border-left: 4px solid #e65100;
+    color: #4e2700;
+  }
+  .progression {
+    background: #fff;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+    color: #1a4d7a;
+    border: 1px solid #ddd;
+  }
+  .schema-container {
+    background: #fafafa;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+    text-align: center;
+  }
+  .schema-container svg {
+    max-width: 100%;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+
+<h1>⚡ Entraînement — Lois des nœuds et des mailles</h1>
+
+<div class="intro-card">
+  <p><strong>Préparation au sujet d'examen — 1<sup>re</sup> TMA</strong></p>
+  <p>Cet entraînement est centré sur les <strong>lois des nœuds (en dérivation) et des mailles (en série)</strong>. Trois cas concrets de l'atelier de menuiserie pour bien maîtriser ces deux lois fondamentales. Pose tes calculs sur ta feuille de brouillon avant de répondre. 3 indices par question si tu te trompes.</p>
+</div>
+
+<div class="progression">
+  Score : <span id="score">0</span> / 12 questions validées &nbsp;|&nbsp; Total : 20 points
+</div>
+
+<div class="formules-utiles">
+  <h2>📐 Lois à connaître</h2>
+  <ul>
+    <li><strong>Loi des mailles</strong> (circuit en série) : sur une boucle, la somme des tensions des dipôles est égale à la tension du générateur. <br><code>U<sub>générateur</sub> = U<sub>1</sub> + U<sub>2</sub> + U<sub>3</sub> + ...</code></li>
+    <li><strong>Loi des nœuds</strong> (circuit en dérivation) : la somme des intensités qui entrent dans un nœud est égale à la somme de celles qui en sortent. <br><code>I<sub>totale</sub> = I<sub>1</sub> + I<sub>2</sub> + I<sub>3</sub> + ...</code></li>
+    <li><strong>En série</strong> : l'<strong>intensité</strong> est la <strong>même partout</strong> dans le circuit.</li>
+    <li><strong>En dérivation</strong> : la <strong>tension</strong> est la <strong>même</strong> sur chaque branche (égale à celle du générateur).</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- CAS 1 : Série - éclairage poste de traçage -->
+<!-- ============================================================ -->
+
+<div class="cas-titre">
+  Cas n° 1 — L'éclairage du poste de traçage (circuit en série)
+  <span class="points">7 points</span>
+</div>
+
+<div class="enonce">
+  <p>Au poste de traçage de l'atelier, trois dipôles sont branchés <strong>en série</strong> sur un transformateur de <strong>30 V</strong> :</p>
+  <ul>
+    <li>une <strong>résistance de protection</strong> ;</li>
+    <li>une <strong>lampe halogène</strong> qui fonctionne sous 18 V ;</li>
+    <li>un <strong>voyant LED</strong> de signalisation qui fonctionne sous 4 V.</li>
+  </ul>
+  <p>M. REYDELLET a branché un ampèremètre sur la lampe et a mesuré une intensité de <strong>2 A</strong>.</p>
+  <div class="schema-container">
+    <svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- Boucle du circuit -->
+      <line x1="80" y1="100" x2="620" y2="100" stroke="#222" stroke-width="2"/>
+      <line x1="620" y1="100" x2="620" y2="240" stroke="#222" stroke-width="2"/>
+      <line x1="620" y1="240" x2="80" y2="240" stroke="#222" stroke-width="2"/>
+      <line x1="80" y1="240" x2="80" y2="190" stroke="#222" stroke-width="2"/>
+      <line x1="80" y1="150" x2="80" y2="100" stroke="#222" stroke-width="2"/>
+
+      <!-- Transformateur -->
+      <line x1="60" y1="145" x2="100" y2="145" stroke="#222" stroke-width="3"/>
+      <line x1="70" y1="170" x2="90" y2="170" stroke="#222" stroke-width="2"/>
+      <text x="20" y="135" font-size="13" fill="#1976d2" font-weight="bold">30 V</text>
+
+      <!-- Résistance de protection -->
+      <rect x="180" y="85" width="90" height="30" fill="#fff" stroke="#222" stroke-width="2"/>
+      <text x="200" y="105" font-size="12" fill="#222">Résistance</text>
+      <text x="190" y="135" font-size="11" fill="#666">protection</text>
+
+      <!-- Lampe -->
+      <circle cx="380" cy="100" r="22" fill="#fff" stroke="#222" stroke-width="2"/>
+      <line x1="364" y1="84" x2="396" y2="116" stroke="#222" stroke-width="2"/>
+      <line x1="364" y1="116" x2="396" y2="84" stroke="#222" stroke-width="2"/>
+      <text x="345" y="145" font-size="12" fill="#222">Lampe halogène</text>
+      <text x="370" y="160" font-size="11" fill="#1976d2" font-weight="bold">18 V</text>
+
+      <!-- Voyant LED -->
+      <rect x="510" y="80" width="60" height="40" fill="#fff" stroke="#222" stroke-width="2"/>
+      <polygon points="525,90 525,110 542,100" fill="#fff" stroke="#222" stroke-width="1.5"/>
+      <line x1="542" y1="90" x2="542" y2="110" stroke="#222" stroke-width="1.5"/>
+      <text x="510" y="145" font-size="12" fill="#222">Voyant LED</text>
+      <text x="525" y="160" font-size="11" fill="#1976d2" font-weight="bold">4 V</text>
+
+      <!-- Sens du courant -->
+      <polygon points="150,95 165,100 150,105" fill="#d32f2f"/>
+      <text x="115" y="80" font-size="12" fill="#d32f2f" font-weight="bold">sens du courant</text>
+
+      <!-- Indication I dans la lampe -->
+      <text x="345" y="265" font-size="13" fill="#d32f2f" font-weight="bold">I mesuré dans la lampe = 2 A</text>
+    </svg>
+  </div>
+</div>
+
+<div class="question" data-q="1">
+  <h3>1. Quelle est l'intensité du courant qui traverse la <strong>résistance de protection</strong> ? <span class="pts">(1 pt)</span></h3>
+  <div class="brouillon">Rappel : dans un circuit en série, l'intensité est la même partout.</div>
+  <div class="input-row">
+    <span>I<sub>résistance</sub> =</span>
+    <input type="number" step="0.01" id="q1-input">
+    <span class="unite">A</span>
+    <button onclick="verifier(1)">Valider</button>
+  </div>
+  <div class="feedback" id="q1-feedback"></div>
+</div>
+
+<div class="question" data-q="2">
+  <h3>2. Quelle est l'intensité du courant qui traverse le <strong>voyant LED</strong> ? <span class="pts">(1 pt)</span></h3>
+  <div class="brouillon">Même principe : en série, le courant est identique sur tous les dipôles.</div>
+  <div class="input-row">
+    <span>I<sub>LED</sub> =</span>
+    <input type="number" step="0.01" id="q2-input">
+    <span class="unite">A</span>
+    <button onclick="verifier(2)">Valider</button>
+  </div>
+  <div class="feedback" id="q2-feedback"></div>
+</div>
+
+<div class="question" data-q="3">
+  <h3>3. En appliquant la <strong>loi des mailles</strong>, calculer la tension aux bornes de la résistance de protection. <span class="pts">(2,5 pts)</span></h3>
+  <div class="brouillon">U_générateur = U_résistance + U_lampe + U_LED. Tu connais U_générateur, U_lampe et U_LED. Isole U_résistance.</div>
+  <div class="input-row">
+    <span>U<sub>résistance</sub> =</span>
+    <input type="number" step="0.01" id="q3-input">
+    <span class="unite">V</span>
+    <button onclick="verifier(3)">Valider</button>
+  </div>
+  <div class="feedback" id="q3-feedback"></div>
+</div>
+
+<div class="question" data-q="4">
+  <h3>4. Vérification : la somme des trois tensions des dipôles doit être égale à la tension du générateur. Calculer cette somme pour vérifier que la loi des mailles est bien respectée. <span class="pts">(2,5 pts)</span></h3>
+  <div class="brouillon">U_résistance (Q3) + U_lampe + U_LED. Tu dois retomber sur la tension du transformateur.</div>
+  <div class="input-row">
+    <span>Somme =</span>
+    <input type="number" step="0.01" id="q4-input">
+    <span class="unite">V</span>
+    <button onclick="verifier(4)">Valider</button>
+  </div>
+  <div class="feedback" id="q4-feedback"></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CAS 2 : Dérivation - 3 outils -->
+<!-- ============================================================ -->
+
+<div class="cas-titre">
+  Cas n° 2 — Le tableau de l'établi (circuit en dérivation, 3 outils)
+  <span class="points">7 points</span>
+</div>
+
+<div class="enonce">
+  <p>Trois outils sont branchés <strong>en dérivation</strong> sur le tableau de l'établi alimenté en <strong>230 V</strong> :</p>
+  <ul>
+    <li>l'<strong>aspirateur à copeaux</strong> qui appelle 8 A ;</li>
+    <li>la <strong>ponceuse à bande</strong> qui appelle 6 A ;</li>
+    <li>la <strong>lampe d'établi</strong> dont on cherche l'intensité.</li>
+  </ul>
+  <p>M. REYDELLET a placé une pince ampèremétrique sur le câble principal sortant du tableau et a mesuré une intensité totale de <strong>18 A</strong>.</p>
+  <div class="schema-container">
+    <svg viewBox="0 0 800 460" xmlns="http://www.w3.org/2000/svg">
+      <!-- Tableau -->
+      <line x1="50" y1="200" x2="90" y2="200" stroke="#222" stroke-width="3"/>
+      <line x1="60" y1="230" x2="80" y2="230" stroke="#222" stroke-width="2"/>
+      <text x="15" y="220" font-size="13" fill="#1976d2" font-weight="bold">230 V</text>
+      <text x="0" y="245" font-size="10" fill="#666">tableau</text>
+
+      <!-- Fil sortie haut -->
+      <line x1="70" y1="200" x2="70" y2="80" stroke="#222" stroke-width="2"/>
+      <line x1="70" y1="80" x2="380" y2="80" stroke="#222" stroke-width="2"/>
+
+      <!-- I_total mesuré -->
+      <polygon points="180,75 195,80 180,85" fill="#d32f2f"/>
+      <text x="120" y="68" font-size="12" fill="#d32f2f" font-weight="bold">I_total = 18 A (mesuré)</text>
+
+      <!-- Rail vertical droit -->
+      <line x1="650" y1="80" x2="650" y2="340" stroke="#222" stroke-width="2"/>
+      <line x1="650" y1="340" x2="650" y2="420" stroke="#222" stroke-width="2"/>
+      <line x1="650" y1="420" x2="70" y2="420" stroke="#222" stroke-width="2"/>
+      <line x1="70" y1="420" x2="70" y2="240" stroke="#222" stroke-width="2"/>
+
+      <!-- Rail vertical gauche (nœuds) -->
+      <line x1="380" y1="80" x2="380" y2="340" stroke="#222" stroke-width="2"/>
+
+      <!-- Nœuds gauche -->
+      <circle cx="380" cy="80" r="4" fill="#222"/>
+      <circle cx="380" cy="200" r="4" fill="#222"/>
+      <circle cx="380" cy="340" r="4" fill="#222"/>
+
+      <!-- Nœuds droite -->
+      <circle cx="650" cy="80" r="4" fill="#222"/>
+      <circle cx="650" cy="200" r="4" fill="#222"/>
+      <circle cx="650" cy="340" r="4" fill="#222"/>
+
+      <!-- Branche 1 : Aspirateur -->
+      <line x1="380" y1="80" x2="650" y2="80" stroke="#222" stroke-width="2"/>
+      <rect x="495" y="60" width="60" height="40" fill="#fff" stroke="#222" stroke-width="2"/>
+      <text x="500" y="85" font-size="11" fill="#222">ASPI</text>
+      <text x="490" y="125" font-size="13" fill="#222">Aspirateur</text>
+      <text x="395" y="65" font-size="12" fill="#d32f2f" font-weight="bold">I_aspi = 8 A</text>
+
+      <!-- Branche 2 : Ponceuse -->
+      <line x1="380" y1="200" x2="650" y2="200" stroke="#222" stroke-width="2"/>
+      <rect x="495" y="180" width="60" height="40" fill="#fff" stroke="#222" stroke-width="2"/>
+      <text x="500" y="205" font-size="11" fill="#222">PONS.</text>
+      <text x="495" y="245" font-size="13" fill="#222">Ponceuse</text>
+      <text x="395" y="180" font-size="12" fill="#d32f2f" font-weight="bold">I_pons = 6 A</text>
+
+      <!-- Branche 3 : Lampe -->
+      <line x1="380" y1="340" x2="650" y2="340" stroke="#222" stroke-width="2"/>
+      <circle cx="525" cy="340" r="22" fill="#fff" stroke="#222" stroke-width="2"/>
+      <line x1="509" y1="324" x2="541" y2="356" stroke="#222" stroke-width="2"/>
+      <line x1="509" y1="356" x2="541" y2="324" stroke="#222" stroke-width="2"/>
+      <text x="500" y="385" font-size="13" fill="#222">Lampe</text>
+      <text x="395" y="320" font-size="12" fill="#d32f2f" font-weight="bold">I_lampe = ?</text>
+    </svg>
+  </div>
+</div>
+
+<div class="question" data-q="5">
+  <h3>5. En appliquant la <strong>loi des nœuds</strong>, calculer l'intensité qui traverse la lampe d'établi. <span class="pts">(2,5 pts)</span></h3>
+  <div class="brouillon">I_total = I_aspi + I_pons + I_lampe. Tu connais I_total, I_aspi et I_pons. Isole I_lampe.</div>
+  <div class="input-row">
+    <span>I<sub>lampe</sub> =</span>
+    <input type="number" step="0.01" id="q5-input">
+    <span class="unite">A</span>
+    <button onclick="verifier(5)">Valider</button>
+  </div>
+  <div class="feedback" id="q5-feedback"></div>
+</div>
+
+<div class="question" data-q="6">
+  <h3>6. Quelle est la tension aux bornes de l'<strong>aspirateur</strong> ? <span class="pts">(1,5 pt)</span></h3>
+  <div class="brouillon">Rappel : en dérivation, chaque branche reçoit la même tension que le générateur.</div>
+  <div class="input-row">
+    <span>U<sub>aspi</sub> =</span>
+    <input type="number" step="0.01" id="q6-input">
+    <span class="unite">V</span>
+    <button onclick="verifier(6)">Valider</button>
+  </div>
+  <div class="feedback" id="q6-feedback"></div>
+</div>
+
+<div class="question" data-q="7">
+  <h3>7. Quelle est la tension aux bornes de la <strong>lampe d'établi</strong> ? <span class="pts">(1,5 pt)</span></h3>
+  <div class="brouillon">Même principe : la lampe est branchée en dérivation comme les autres outils.</div>
+  <div class="input-row">
+    <span>U<sub>lampe</sub> =</span>
+    <input type="number" step="0.01" id="q7-input">
+    <span class="unite">V</span>
+    <button onclick="verifier(7)">Valider</button>
+  </div>
+  <div class="feedback" id="q7-feedback"></div>
+</div>
+
+<div class="question" data-q="8">
+  <h3>8. Vérification : calculer la somme I<sub>aspi</sub> + I<sub>pons</sub> + I<sub>lampe</sub>. Tu dois retomber sur l'intensité totale mesurée. <span class="pts">(1,5 pt)</span></h3>
+  <div class="brouillon">Additionne 8 + 6 + ta réponse à la Q5. Tu dois obtenir 18 A.</div>
+  <div class="input-row">
+    <span>Somme =</span>
+    <input type="number" step="0.01" id="q8-input">
+    <span class="unite">A</span>
+    <button onclick="verifier(8)">Valider</button>
+  </div>
+  <div class="feedback" id="q8-feedback"></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CAS 3 : Mixte - série moteur + résistance + dérivation 4 prises -->
+<!-- ============================================================ -->
+
+<div class="cas-titre">
+  Cas n° 3 — Le démarrage du moteur de la dégauchisseuse (circuit en série)
+  <span class="points">6 points</span>
+</div>
+
+<div class="enonce">
+  <p>La <strong>dégauchisseuse</strong> de l'atelier est équipée d'un moteur électrique précédé d'une <strong>résistance de démarrage</strong> branchée <strong>en série</strong>. Cette résistance limite l'intensité au démarrage pour protéger le moteur.</p>
+  <p>L'ensemble est alimenté par le secteur en <strong>230 V</strong>. M. REYDELLET mesure :</p>
+  <ul>
+    <li>la <strong>tension aux bornes du moteur</strong> en fonctionnement : <strong>200 V</strong> ;</li>
+    <li>l'<strong>intensité dans le moteur</strong> : <strong>4 A</strong>.</li>
+  </ul>
+  <div class="schema-container">
+    <svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg">
+      <!-- Boucle -->
+      <line x1="80" y1="80" x2="620" y2="80" stroke="#222" stroke-width="2"/>
+      <line x1="620" y1="80" x2="620" y2="220" stroke="#222" stroke-width="2"/>
+      <line x1="620" y1="220" x2="80" y2="220" stroke="#222" stroke-width="2"/>
+      <line x1="80" y1="220" x2="80" y2="170" stroke="#222" stroke-width="2"/>
+      <line x1="80" y1="130" x2="80" y2="80" stroke="#222" stroke-width="2"/>
+
+      <!-- Secteur -->
+      <line x1="60" y1="125" x2="100" y2="125" stroke="#222" stroke-width="3"/>
+      <line x1="70" y1="150" x2="90" y2="150" stroke="#222" stroke-width="2"/>
+      <text x="20" y="115" font-size="13" fill="#1976d2" font-weight="bold">230 V</text>
+
+      <!-- Résistance démarrage -->
+      <rect x="220" y="65" width="100" height="30" fill="#fff" stroke="#222" stroke-width="2"/>
+      <text x="232" y="86" font-size="12" fill="#222">R démarrage</text>
+      <text x="240" y="125" font-size="11" fill="#666">U_R = ?</text>
+
+      <!-- Moteur (cercle avec M) -->
+      <circle cx="450" cy="80" r="25" fill="#fff" stroke="#222" stroke-width="2"/>
+      <text x="441" y="88" font-size="18" fill="#222" font-weight="bold">M</text>
+      <text x="425" y="125" font-size="13" fill="#222">Moteur</text>
+      <text x="425" y="140" font-size="11" fill="#1976d2" font-weight="bold">U_M = 200 V</text>
+
+      <!-- Sens courant -->
+      <polygon points="150,75 165,80 150,85" fill="#d32f2f"/>
+      <text x="115" y="60" font-size="12" fill="#d32f2f" font-weight="bold">sens du courant</text>
+
+      <!-- I dans le moteur -->
+      <text x="380" y="245" font-size="13" fill="#d32f2f" font-weight="bold">I dans le moteur = 4 A</text>
+    </svg>
+  </div>
+</div>
+
+<div class="question" data-q="9">
+  <h3>9. Quelle est l'intensité du courant qui traverse la <strong>résistance de démarrage</strong> ? <span class="pts">(1,5 pt)</span></h3>
+  <div class="brouillon">Le moteur et la résistance sont en série : qu'en est-il de l'intensité ?</div>
+  <div class="input-row">
+    <span>I<sub>R</sub> =</span>
+    <input type="number" step="0.01" id="q9-input">
+    <span class="unite">A</span>
+    <button onclick="verifier(9)">Valider</button>
+  </div>
+  <div class="feedback" id="q9-feedback"></div>
+</div>
+
+<div class="question" data-q="10">
+  <h3>10. En appliquant la <strong>loi des mailles</strong>, calculer la tension aux bornes de la résistance de démarrage. <span class="pts">(2 pts)</span></h3>
+  <div class="brouillon">U_secteur = U_R + U_moteur. Tu connais U_secteur et U_moteur, isole U_R.</div>
+  <div class="input-row">
+    <span>U<sub>R</sub> =</span>
+    <input type="number" step="0.01" id="q10-input">
+    <span class="unite">V</span>
+    <button onclick="verifier(10)">Valider</button>
+  </div>
+  <div class="feedback" id="q10-feedback"></div>
+</div>
+
+<div class="question" data-q="11">
+  <h3>11. Maintenant, imagine qu'on retire la résistance de démarrage et qu'on branche en plus du moteur (toujours en série) un <strong>voyant lumineux</strong> qui fonctionne sous 8 V. Quelle serait alors la tension reçue par le moteur ? <span class="pts">(2 pts)</span></h3>
+  <div class="brouillon">Loi des mailles : U_secteur = U_voyant + U_moteur. Le secteur est toujours 230 V.</div>
+  <div class="input-row">
+    <span>U<sub>moteur</sub> =</span>
+    <input type="number" step="0.01" id="q11-input">
+    <span class="unite">V</span>
+    <button onclick="verifier(11)">Valider</button>
+  </div>
+  <div class="feedback" id="q11-feedback"></div>
+</div>
+
+<div class="question" data-q="12">
+  <h3>12. Vérification : calculer la somme U<sub>R</sub> + U<sub>moteur</sub> de la situation initiale (Q10). Tu dois retomber sur la tension du secteur. <span class="pts">(0,5 pt)</span></h3>
+  <div class="brouillon">Additionne ta réponse à la Q10 et 200 V (tension du moteur). Tu dois obtenir 230 V.</div>
+  <div class="input-row">
+    <span>Somme =</span>
+    <input type="number" step="0.01" id="q12-input">
+    <span class="unite">V</span>
+    <button onclick="verifier(12)">Valider</button>
+  </div>
+  <div class="feedback" id="q12-feedback"></div>
+</div>
+
+<script>
+const reponses = {
+  // CAS 1 — Série (U_gen=30V, U_lampe=18V, U_LED=4V, I_lampe=2A)
+  '1':  { val: 2,    tol: 0.05, type: 'num' },   // I_R = même partout
+  '2':  { val: 2,    tol: 0.05, type: 'num' },   // I_LED = même partout
+  '3':  { val: 8,    tol: 0.05, type: 'num' },   // U_R = 30 - 18 - 4 = 8V
+  '4':  { val: 30,   tol: 0.05, type: 'num' },   // somme = 30V
+
+  // CAS 2 — Dérivation (I_total=18A, I_aspi=8A, I_pons=6A, U_secteur=230V)
+  '5':  { val: 4,    tol: 0.05, type: 'num' },   // I_lampe = 18 - 8 - 6 = 4A
+  '6':  { val: 230,  tol: 0.05, type: 'num' },   // U_aspi = 230V
+  '7':  { val: 230,  tol: 0.05, type: 'num' },   // U_lampe = 230V
+  '8':  { val: 18,   tol: 0.05, type: 'num' },   // somme = 18A
+
+  // CAS 3 — Série moteur (U_secteur=230V, U_moteur=200V, I=4A)
+  '9':  { val: 4,    tol: 0.05, type: 'num' },   // I_R = 4A (même partout)
+  '10': { val: 30,   tol: 0.05, type: 'num' },   // U_R = 230 - 200 = 30V
+  '11': { val: 222,  tol: 0.05, type: 'num' },   // U_moteur = 230 - 8 = 222V
+  '12': { val: 230,  tol: 0.05, type: 'num' }    // 30 + 200 = 230V
+};
+
+const indices = {
+  '1': [
+    "💡 Indice 1 : Quelle est la caractéristique d'un circuit en SÉRIE concernant l'intensité ?",
+    "💡 Indice 2 : Dans un circuit en série, l'intensité est la MÊME en tout point du circuit.",
+    "💡 Indice 3 : Donc I_résistance = I_lampe = 2 A."
+  ],
+  '2': [
+    "💡 Indice 1 : Pareil que la Q1 : circuit en série donc intensité identique partout.",
+    "💡 Indice 2 : I_LED = I_lampe = ?",
+    "💡 Indice 3 : I_LED = 2 A."
+  ],
+  '3': [
+    "💡 Indice 1 : Loi des mailles : la somme des tensions des dipôles = tension du générateur.",
+    "💡 Indice 2 : 30 = U_R + U_lampe + U_LED = U_R + 18 + 4. Isole U_R.",
+    "💡 Indice 3 : U_R = 30 − 18 − 4 = ?"
+  ],
+  '4': [
+    "💡 Indice 1 : Additionne les trois tensions trouvées : U_R (Q3), U_lampe (18 V) et U_LED (4 V).",
+    "💡 Indice 2 : 8 + 18 + 4 = ?",
+    "💡 Indice 3 : Le résultat doit être 30 V (la tension du transformateur). C'est la vérification de la loi des mailles."
+  ],
+  '5': [
+    "💡 Indice 1 : Loi des nœuds : I_total = I_aspi + I_pons + I_lampe.",
+    "💡 Indice 2 : 18 = 8 + 6 + I_lampe. Isole I_lampe.",
+    "💡 Indice 3 : I_lampe = 18 − 8 − 6 = ?"
+  ],
+  '6': [
+    "💡 Indice 1 : Quelle est la caractéristique d'un circuit en DÉRIVATION concernant la tension ?",
+    "💡 Indice 2 : En dérivation, chaque branche reçoit la même tension que le générateur.",
+    "💡 Indice 3 : U_aspi = 230 V."
+  ],
+  '7': [
+    "💡 Indice 1 : Pareil que la Q6 : la lampe est sur une branche en dérivation.",
+    "💡 Indice 2 : Toutes les branches reçoivent la tension du tableau (230 V).",
+    "💡 Indice 3 : U_lampe = 230 V."
+  ],
+  '8': [
+    "💡 Indice 1 : Additionne les trois intensités : I_aspi (8 A) + I_pons (6 A) + I_lampe (Q5).",
+    "💡 Indice 2 : 8 + 6 + 4 = ?",
+    "💡 Indice 3 : Le résultat doit être 18 A (l'intensité totale mesurée). C'est la vérification de la loi des nœuds."
+  ],
+  '9': [
+    "💡 Indice 1 : La résistance et le moteur sont en SÉRIE.",
+    "💡 Indice 2 : En série, l'intensité est la même en tout point du circuit.",
+    "💡 Indice 3 : I_R = I_moteur = 4 A."
+  ],
+  '10': [
+    "💡 Indice 1 : Loi des mailles : U_secteur = U_R + U_moteur.",
+    "💡 Indice 2 : 230 = U_R + 200. Isole U_R.",
+    "💡 Indice 3 : U_R = 230 − 200 = ?"
+  ],
+  '11': [
+    "💡 Indice 1 : Nouvelle situation : voyant + moteur en série, sans la résistance de démarrage.",
+    "💡 Indice 2 : Loi des mailles : U_secteur = U_voyant + U_moteur, soit 230 = 8 + U_moteur. Isole U_moteur.",
+    "💡 Indice 3 : U_moteur = 230 − 8 = ?"
+  ],
+  '12': [
+    "💡 Indice 1 : Additionne U_R (calculé en Q10) et U_moteur (200 V).",
+    "💡 Indice 2 : 30 + 200 = ?",
+    "💡 Indice 3 : Tu dois retomber sur 230 V (la tension du secteur). C'est la vérification."
+  ]
+};
+
+const essais = {};
+const validees = new Set();
+
+function arrondir(n) {
+  return Math.round(n * 100) / 100;
+}
+
+function majScore() {
+  document.getElementById('score').textContent = validees.size;
+}
+
+function afficherFeedback(qId, type, message) {
+  const fb = document.getElementById('q' + qId + '-feedback');
+  fb.className = 'feedback ' + type;
+  fb.innerHTML = message;
+  fb.style.display = 'block';
+}
+
+function verifier(qId) {
+  if (validees.has(qId)) return;
+
+  const rep = reponses[qId];
+  const input = document.getElementById('q' + qId + '-input');
+  const val = parseFloat(input.value.replace(',', '.'));
+
+  if (isNaN(val)) {
+    afficherFeedback(qId, 'indice', "⚠️ Saisis un nombre avant de valider.");
+    return;
+  }
+
+  const estCorrect = Math.abs(arrondir(val) - rep.val) <= rep.tol;
+
+  if (estCorrect) {
+    validees.add(qId);
+    majScore();
+    afficherFeedback(qId, 'correct', "✅ <strong>Bravo !</strong> Réponse correcte.");
+    const q = document.querySelector('[data-q="' + qId + '"]');
+    q.querySelectorAll('input, button').forEach(el => el.disabled = true);
+  } else {
+    essais[qId] = (essais[qId] || 0) + 1;
+    const numEssai = essais[qId];
+    const indicesQ = indices[qId];
+
+    if (numEssai <= indicesQ.length) {
+      const indice = indicesQ[numEssai - 1];
+      afficherFeedback(qId, 'indice',
+        "❌ Ce n'est pas la bonne réponse. <br><br>" + indice +
+        "<br><br><em>Reprends ton brouillon, refais le raisonnement, puis essaie à nouveau.</em>"
+      );
+    } else {
+      afficherFeedback(qId, 'solution',
+        "❌ Tous les indices ont été donnés. La réponse attendue est : <strong>" + rep.val + "</strong>." +
+        "<br><br>Reprends bien le raisonnement étape par étape sur ton brouillon."
+      );
+    }
+  }
+}
+</script>
+
+</body>
+</html>
